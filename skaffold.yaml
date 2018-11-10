@@ -1,0 +1,31 @@
+apiVersion: skaffold/v1alpha2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/industrycoinco/web:{{.VERSION}}"
+  artifacts:
+  - imageName: industrycoin-web
+    workspace: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/industrycoinco/web:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: web
+        chartPath: charts/web
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/industrycoinco/web"
+          image.tag: "{{.DIGEST_HEX}}"
